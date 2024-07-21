@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive SVG Pattern Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            padding: 20px; 
+        }
+        label { display: inline-block; width: 150px; }
+        input[type="range"] { width: 200px; }
+        input[type="number"] { width: 60px; }
+        select { width: 100px; }
+        .shape-specific { display: none; }
+        #svgContainer {
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .group {
+            margin-bottom: 36px;
+            padding-bottom: 36px;
+            border-bottom: 1px solid #DADADA;
+        }
+        .group:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Comprehensive SVG Pattern Builder</h1>
+    <div id="controls">
+        <div class="group">
+            <label>Screen Size:</label>
+            <select id="screenSizeSelect">
+                <option value="1920,1080">Desktop (1920x1080)</option>
+                <option value="1366,768">Laptop (1366x768)</option>
+                <option value="768,1024">Tablet (768x1024)</option>
+                <option value="375,667">Mobile (375x667)</option>
+                <option value="1280,720">HD (1280x720)</option>
+            </select><br>
+
+            <label>Color:</label>
+            <input type="color" id="colorInput" value="#000000"><br>
+        </div>
+
+        <div class="group">
+            <label>Shape:</label>
+            <select id="shapeSelect">
+                <option value="cross">Cross</option>
+                <option value="circle">Circle</option>
+                <option value="square">Square</option>
+                <option value="rectangle">Rectangle</option>
+                <option value="triangle">Triangle</option>
+                <option value="polygon">Polygon</option>
+                <option value="star">Star</option>
+            </select><br>
+
+            <div id="crossOptions" class="shape-specific">
+                <label>Cross Thickness:</label>
+                <input type="range" id="crossThicknessSlider" min="1" max="50" value="10">
+                <input type="number" id="crossThicknessInput" min="1" max="50" value="10"><br>
+            </div>
+
+            <div id="polygonOptions" class="shape-specific">
+                <label>Polygon Sides:</label>
+                <input type="range" id="polygonSidesSlider" min="3" max="12" value="6">
+                <input type="number" id="polygonSidesInput" min="3" max="12" value="6"><br>
+            </div>
+
+            <div id="starOptions" class="shape-specific">
+                <label>Star Points:</label>
+                <input type="range" id="starPointsSlider" min="3" max="12" value="5">
+                <input type="number" id="starPointsInput" min="3" max="12" value="5"><br>
+            </div>
+
+            <label>Spacing:</label>
+            <input type="range" id="spacingSlider" min="10" max="200" value="50">
+            <input type="number" id="spacingInput" min="10" max="200" value="50"><br>
+        </div>
+
+        <div class="group">
+            <label>Size Variation:</label>
+            <select id="sizeVariationSelect">
+                <option value="none">None</option>
+                <option value="horizontal">Horizontal</option>
+                <option value="vertical">Vertical</option>
+                <option value="diagonal">Diagonal</option>
+                <option value="radial">Radial</option>
+            </select><br>
+
+            <label>Min Size:</label>
+            <input type="range" id="minSizeSlider" min="1" max="100" value="10">
+            <input type="number" id="minSizeInput" min="1" max="100" value="10"><br>
+
+            <label>Max Size:</label>
+            <input type="range" id="maxSizeSlider" min="1" max="100" value="50">
+            <input type="number" id="maxSizeInput" min="1" max="100" value="50"><br>
+        </div>
+
+        <div class="group">
+            <label>Opacity Variation:</label>
+            <select id="opacityVariationSelect">
+                <option value="none">None</option>
+                <option value="horizontal">Horizontal</option>
+                <option value="vertical">Vertical</option>
+                <option value="diagonal">Diagonal</option>
+                <option value="radial">Radial</option>
+            </select><br>
+
+            <label>Min Opacity (%):</label>
+            <input type="range" id="minOpacitySlider" min="0" max="100" value="10">
+            <input type="number" id="minOpacityInput" min="0" max="100" value="10"><br>
+
+            <label>Max Opacity (%):</label>
+            <input type="range" id="maxOpacitySlider" min="0" max="100" value="100">
+            <input type="number" id="maxOpacityInput" min="0" max="100" value="100"><br>
+        </div>
+
+        <div class="group">
+            <label>Horizontal Repeats:</label>
+            <input type="range" id="hRepeatsSlider" min="1" max="10" value="1">
+            <input type="number" id="hRepeatsInput" min="1" max="10" value="1"><br>
+
+            <label>Vertical Repeats:</label>
+            <input type="range" id="vRepeatsSlider" min="1" max="10" value="1">
+            <input type="number" id="vRepeatsInput" min="1" max="10" value="1"><br>
+        </div>
+
+        <button onclick="generatePattern()">Generate Pattern</button>
+    </div>
+    <div id="svgContainer"></div>
+
+    <script>
+        function syncInputs(sliderId, inputId) {
+            const slider = document.getElementById(sliderId);
+            const input = document.getElementById(inputId);
+            
+            slider.oninput = function() {
+                input.value = this.value;
+                generatePattern();
+            }
+            
+            input.oninput = function() {
+                slider.value = this.value;
+                generatePattern();
+            }
+        }
+
+        function generateShape(x, y, size, shape, color, opacity) {
+            const polygonSides = parseInt(document.getElementById('polygonSidesInput').value);
+            const starPoints = parseInt(document.getElementById('starPointsInput').value);
+            const crossThickness = parseInt(document.getElementById('crossThicknessInput').value);
+
+            const fillColor = color + Math.round(opacity * 255 / 100).toString(16).padStart(2, '0');
+
+            switch(shape) {
+                case 'circle':
+                    return `<circle cx="${x}" cy="${y}" r="${size / 2}" fill="${fillColor}" />`;
+                case 'square':
+                    return `<rect x="${x - size/2}" y="${y - size/2}" width="${size}" height="${size}" fill="${fillColor}" />`;
+                case 'rectangle':
+                    return `<rect x="${x - size/2}" y="${y - size/4}" width="${size}" height="${size/2}" fill="${fillColor}" />`;
+                case 'triangle':
+                    const h = size * Math.sqrt(3) / 2;
+                    return `<polygon points="${x},${y - h/2} ${x - size/2},${y + h/2} ${x + size/2},${y + h/2}" fill="${fillColor}" />`;
+                case 'cross':
+                    return `<line x1="${x-size/2}" y1="${y}" x2="${x+size/2}" y2="${y}" stroke="${fillColor}" stroke-width="${crossThickness}" />
+                            <line x1="${x}" y1="${y-size/2}" x2="${x}" y2="${y+size/2}" stroke="${fillColor}" stroke-width="${crossThickness}" />`;
+                case 'polygon':
+                    const points = [];
+                    for (let i = 0; i < polygonSides; i++) {
+                        const angle = i * 2 * Math.PI / polygonSides;
+                        points.push(`${x + size/2 * Math.cos(angle)},${y + size/2 * Math.sin(angle)}`);
+                    }
+                    return `<polygon points="${points.join(' ')}" fill="${fillColor}" />`;
+                case 'star':
+                    const starPointsArr = [];
+                    for (let i = 0; i < starPoints * 2; i++) {
+                        const angle = i * Math.PI / starPoints;
+                        const radius = i % 2 === 0 ? size / 2 : size / 4;
+                        starPointsArr.push(`${x + radius * Math.cos(angle)},${y + radius * Math.sin(angle)}`);
+                    }
+                    return `<polygon points="${starPointsArr.join(' ')}" fill="${fillColor}" />`;
+                default:
+                    return '';
+            }
+        }
+
+        function calculateVariation(variation, col, row, cols, rows) {
+            switch (variation) {
+                case 'horizontal':
+                    return col / (cols - 1);
+                case 'vertical':
+                    return row / (rows - 1);
+                case 'diagonal':
+                    return (col + row) / (cols + rows - 2);
+                case 'radial':
+                    const centerX = (cols - 1) / 2;
+                    const centerY = (rows - 1) / 2;
+                    const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY);
+                    const distance = Math.sqrt((col - centerX) * (col - centerX) + (row - centerY) * (row - centerY));
+                    return 1 - (distance / maxDistance);
+                default:
+                    return 1;
+            }
+        }
+
+        function generatePattern() {
+            const [width, height] = document.getElementById('screenSizeSelect').value.split(',').map(Number);
+            const minSize = parseInt(document.getElementById('minSizeInput').value);
+            const maxSize = parseInt(document.getElementById('maxSizeInput').value);
+            const minOpacity = parseInt(document.getElementById('minOpacityInput').value);
+            const maxOpacity = parseInt(document.getElementById('maxOpacityInput').value);
+            const spacing = parseInt(document.getElementById('spacingInput').value);
+            const hRepeats = parseInt(document.getElementById('hRepeatsInput').value);
+            const vRepeats = parseInt(document.getElementById('vRepeatsInput').value);
+            const shape = document.getElementById('shapeSelect').value;
+            const color = document.getElementById('colorInput').value;
+            const sizeVariation = document.getElementById('sizeVariationSelect').value;
+            const opacityVariation = document.getElementById('opacityVariationSelect').value;
+
+            const paddedWidth = width + 24;
+            const paddedHeight = height + 24;
+
+            let svg = `<svg width="${paddedWidth}" height="${paddedHeight}" xmlns="http://www.w3.org/2000/svg">`;
+            
+            // Add container rectangle
+            svg += `<rect x="0.5" y="0.5" width="${paddedWidth - 1}" height="${paddedHeight - 1}" fill="none" stroke="#9D9D9D" stroke-width="1" rx="24" ry="24"/>`;
+            
+            // Create a group for the pattern and translate it to apply padding
+            svg += `<g transform="translate(12, 12)">`;
+
+            const totalCols = Math.floor(width / spacing);
+            const totalRows = Math.floor(height / spacing);
+
+            const colsPerRepeat = Math.floor(totalCols / hRepeats);
+            const rowsPerRepeat = Math.floor(totalRows / vRepeats);
+
+            for (let row = 0; row < totalRows; row++) {
+                for (let col = 0; col < totalCols; col++) {
+                    const repeatCol = col % colsPerRepeat;
+                    const repeatRow = row % rowsPerRepeat;
+
+                    const x = col * spacing + spacing / 2;
+                    const y = row * spacing + spacing / 2;
+
+                    const sizeRatio = calculateVariation(sizeVariation, repeatCol, repeatRow, colsPerRepeat, rowsPerRepeat);
+                    const opacityRatio = calculateVariation(opacityVariation, repeatCol, repeatRow, colsPerRepeat, rowsPerRepeat);
+
+                    const size = minSize + (maxSize - minSize) * sizeRatio;
+                    const opacity = minOpacity + (maxOpacity - minOpacity) * opacityRatio;
+
+                    svg += generateShape(x, y, size, shape, color, opacity);
+                }
+            }
+
+            svg += `</g></svg>`;
+            document.getElementById('svgContainer').innerHTML = svg;
+        }
+
+        function showShapeOptions() {
+            const shape = document.getElementById('shapeSelect').value;
+            document.querySelectorAll('.shape-specific').forEach(el => el.style.display = 'none');
+            if (shape === 'polygon') document.getElementById('polygonOptions').style.display = 'block';
+            if (shape === 'star') document.getElementById('starOptions').style.display = 'block';
+            if (shape === 'cross') document.getElementById('crossOptions').style.display = 'block';
+        }
+
+        // Set up event listeners and sync inputs
+        ['minSize', 'maxSize', 'spacing', 'hRepeats', 'vRepeats', 'polygonSides', 'starPoints', 'crossThickness', 'minOpacity', 'maxOpacity'].forEach(id => {
+            syncInputs(id + 'Slider', id + 'Input');
+        });
+
+        // Add event listeners for selects and color input
+        ['screenSizeSelect', 'shapeSelect', 'sizeVariationSelect', 'opacityVariationSelect', 'colorInput'].forEach(id => {
+            document.getElementById(id).addEventListener('change', generatePattern);
+        });
+
+        document.getElementById('shapeSelect').addEventListener('change', showShapeOptions);
+
+        showShapeOptions();
+        generatePattern();
+    </script>
+</body>
+</html>
